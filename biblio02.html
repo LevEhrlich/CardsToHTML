@@ -1,0 +1,1046 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="windows-1251">
+<title>Библиография</title>
+<style>
+* {font-family:Arial,Helvetica,san-serif;font-size:16px;}
+.btn {border:1px solid;width:40px;border-radius:10px;font-weight:bold;display:inline-block;}
+input {font-weight:bold;}
+#searchTarg {font-weight:bold;font-style:italic;"}
+#dv0,#dv1,#dv2,#dv3,#dv4,#dv5,#dv6,#dv7,#dv8 {white-space:nowrap;overflow:hidden;}
+table {table-layout:fixed;}
+#fieldsTbl, #dictValTbl {border:solid 2px black;border-radius:5px;background-color:blue;margin-top:1px;}
+hr {width:2px;color:#ee00ff;}
+</style>
+<script src="aa.js"></script>
+<script src="ta.js"></script>
+<script src="pa.js"></script>
+<script src="ya.js"></script>
+<script src="ja.js"></script>
+<script src="ca.js"></script>
+<script src="sa.js"></script>
+<script src="ka.js"></script>
+<script src="va.js"></script>
+<script src="ma.js"></script>
+<script src="ai.js"></script>
+<script src="ti.js"></script>
+<script src="ji.js"></script>
+<script src="yi.js"></script>
+<script src="vi.js"></script>
+<script src="pi.js"></script>
+<script src="ci.js"></script>
+<script src="ki.js"></script>
+<script src="mi.js"></script>
+<script>
+var pg0,pg1,pg2,markedPg,d0,d1,d2,nav,cards,testDiv;
+var fieldsTbl,dictValTbl,searchResultsTbl,searchResultsCardDiv,viewStyle;
+var dmw,dvw,dnw;
+var dma=[], dva=[], dna=[];
+var fMarked, jValStart=0, jValMarked=0, jCardStart,jCardMarked,jCardCur,curDict,cardsTbl,
+fieldsFocused,valFocused,cardsFocused,cardDivFocused;
+var dictArray, indArray, searchArray, ordArray, ordArrayForDictVal, searchArrayForDictVal, 
+dictPosArray=[0,0,0,0,0,0,0,0,0];
+var DownKey=40, UpKey=38, PgDnKey=34, PgUpKey=33;
+var fieldsBackgroundColor="white", fieldsColor="#aa00ff", 
+fieldsMarkedBackgroundColor="#ff00aa", fieldsMarkedColor="yellow";
+var valBackgroundColor="white", valColor="#9900ff", 
+valMarkedBackgroundColor="#aa00ff", valMarkedColor="white",
+cardBackgroundColor="#eeffdd",cardColor="black", 
+cardMarkedBackgroundColor="lightblue", cardMarkedColor="blue";
+var searchConditions=[[],[],[],[],[],[],[],[],[]];
+var fa=["a","t","j","y","v","p","c","k","m"];
+var colTitles=["Автор","Название","Журнал","Год","Том","Стр.","Место изд","Ключ. слова","Персоналии"];
+var res;
+function choicePg(event) {
+var e=event || window.event;
+if(e.target!=markedPg) {
+markedPg.style.color="#aa00ff"; markedPg.style.backgroundColor="lightgreen";
+markedPg=e.target;
+switch(e.target) {
+case pg0: pg0.style.color="yellow"; pg0.style.backgroundColor="green"; 
+          d0.style.display="block"; d1.style.display="none"; d2.style.display="none";
+		  dictPosArray[fMarked]=jValMarked;
+		  break;
+case pg1: pg1.style.color="yellow"; pg1.style.backgroundColor="green"; 
+          d0.style.display="none"; d2.style.display="none"; d1.style.display="block";  
+		  if(!fMarked) fMarked=0; curDict=dictArray[fMarked]; jValMarked=dictPosArray[fMarked];
+		  break;
+case pg2: pg2.style.color="yellow"; pg2.style.backgroundColor="green"; 
+          d0.style.display="none"; d1.style.display="none"; d2.style.display="block";  
+		  dictPosArray[fMarked]=jValMarked;
+		  break;
+}
+}
+}
+
+function compare(a,b) {if(a&&b) return a-b; else if(!a && b) return -1;
+else if(!a && !b) return 0; else if (a && !b) return 1;}
+
+function mapDict() {
+curDict=dictArray[fMarked];
+if(jValMarked<jValStart) jValStart=jValMarked-1;
+if(jValStart<0) jValStart=0;
+while(jValMarked>jValStart+8) jValStart++;
+for(var j=jValStart; j<curDict.length && j<jValStart+9; j++) {
+  var jj=j-jValStart;
+  testDiv.innerHTML=curDict[j];
+  var L=curDict[j].length;
+  while(testDiv.getBoundingClientRect().width>dvw) {
+    --L;
+	testDiv.innerHTML=curDict[j].slice(0,L);
+	}
+  
+  if(L<curDict[j].length) {
+    L--; 
+    testDiv.innerHTML=curDict[j].slice(0,L);
+	testDiv.innerHTML+="&#10148;";
+  }
+  dva[jj].innerHTML=testDiv.innerHTML; 
+  if(j==jValMarked) { dva[jj].style.backgroundColor=valMarkedBackgroundColor;
+    dva[jj].style.color=valMarkedColor;
+	}
+  else { dva[jj].style.backgroundColor=valBackgroundColor;
+    dva[jj].style.color=valColor;
+	}
+  dna[jj].innerHTML=indArray[fMarked][j].length;
+  if (searchConditions[fMarked].indexOf(j)!=-1) dma[jj].innerHTML="&#10004";
+  else dma[jj].innerHTML="";
+}  
+jj++;
+while(jj<9) {
+dma[jj].innerHTML="";
+dva[jj].innerHTML="";
+dva[jj].style.backgroundColor=valBackgroundColor;
+dva[jj].style.color=valColor;
+dna[jj].innerHTML="";
+jj++
+}
+var ankers=document.getElementsByTagName("a");
+for(var jj=0;jj<ankers.length;jj++) ankers[jj].target="_blank";
+}
+
+function searchDict() {
+var L, V;
+V=searchTarg.value.toUpperCase();
+L=V.length;
+for(var j=0; j<curDict.length; j++) {
+  if(curDict[j].slice(0,L).toUpperCase()==V) {
+    jValStart=j; jValMarked=j;
+	if(jValStart>0) jValStart--;
+	mapDict();
+	break;
+  }
+ } 
+  
+}
+
+function handleArrowKeys(event) {
+var e=event||window.event;
+if(fieldsFocused) {
+dictPosArray[fMarked]=jValMarked;
+if(e.keyCode==DownKey) { 
+if(fMarked==dictArray.length-1) fMarked=0; else fMarked++;
+}
+else if(e.keyCode==UpKey) {
+if(fMarked==0) fMarked=dictArray.length-1; else fMarked--;
+} 
+curDict=dictArray[fMarked];
+jValMarked=dictPosArray[fMarked];
+
+for(var j=0; j<9; j++) {
+var elt=document.getElementById("f"+j);
+elt.style.backgroundColor=fieldsBackgroundColor
+elt.style.color=fieldsColor;
+}
+var elt=document.getElementById("f"+fMarked);
+elt.style.backgroundColor=fieldsMarkedBackgroundColor;
+elt.style.color=fieldsMarkedColor;
+jValStart=jValMarked;
+mapDict();
+}
+else if(valFocused) {if(event.keyCode==DownKey) jValMarked++;
+else if(event.keyCode==UpKey) jValMarked--;
+else if(event.keyCode==PgDnKey) jValMarked+=5;
+else if(event.keyCode==PgUpKey) jValMarked-=5;
+if(jValMarked<0) jValMarked=0; if(jValMarked>=curDict.length) jValMarked=curDict.length-1;
+mapDict();
+}
+else if(cardDivFocused) {
+if(event.keyCode==DownKey) jCardMarked++;
+else if(event.keyCode==UpKey) jCardMarked--;
+else if(event.keyCode==PgDnKey) jCardMarked+=4;
+else if(event.keyCode==PgUpKey) jCardMarked-=4;
+if(jCardMarked<0) jCardMarked=0; if(jCardMarked>=ordArray.length) jCardMarked=ordArray.length-1;
+mapCards();
+}
+//else if(cardDivFocused) {}
+/*
+else if(cardsFocused) {if(event.keyCode==DownKey) jCardMarked++;
+else if(event.keyCode==UpKey) jCardMarked--;
+else if(event.keyCode==PgDnKey) jCardMarked+=7;
+else if(event.keyCode==PgUpKey) jValMarked-=7;
+if(jCardMarked<0) jCardMarked=0; if(jCardMarked>=searchArray.length) jCardMarked=searchArray.length-1;
+if(jCardMarked<jCardStart) jCardStart=jCardMarked;
+if(jCardMarked>jCardStart) jCardStart=jCardMarked;
+mapCardPg(searchArray);
+}
+*/
+} 
+
+function handleWheel(event) {
+var e=event||window.event;
+var delta=e.wheelDelta;
+if(!delta) delta=-e.deltaY;
+if(fieldsFocused) {
+document.getElementById("f"+fMarked).style.backgroundColor=fieldsBackgroundColor;
+document.getElementById("f"+fMarked).style.color=fieldsColor;
+
+if(delta<0 && fMarked<8) fMarked++;
+else if(delta>0 && fMarked>0) fMarked--;
+
+document.getElementById("f"+fMarked).style.backgroundColor=fieldsMarkedBackgroundColor;
+document.getElementById("f"+fMarked).style.color=fieldsMarkedColor;
+}
+else if(valFocused) {
+if(delta<0 && jValMarked<curDict.length-1) jValMarked++;
+else if(delta>0 && jValMarked>0) jValMarked--;
+//if(jValMarked-jValStart>=7) jValStart=jValMarked-7;
+mapDict();
+}
+else if(cardsFocused) {
+if(delta<0 && jCardMarked<ordArray.length-1) jCardMarked++;
+else if(delta>0 && jCardMarked>0) jCardMarked--;
+//while(jCardMarked>jCardStart+9) jCardStart++;
+if(jCardMarked) jCardStart=jCardMarked-3;
+if(jCardStart<0) jCardStart=0;
+mapCardsAsTbl();
+document.getElementById("tr"+(jCardMarked-jCardStart)).scrollIntoView();
+}
+else if(cardDivFocused) {
+if(delta<0 && jCardMarked<ordArray.length-1) jCardMarked++;
+else if(delta>0 && jCardMarked>0) jCardMarked--;
+//while(jCardMarked>jCardStart+9) jCardStart++;
+if(jCardMarked) jCardStart=jCardMarked-3;
+if(jCardStart<0) jCardStart=0;
+mapCards();
+//document.getElementById("div"+(jCardMarked-jCardStart)).scrollIntoView(false);
+}
+}
+
+function mapCardAsTbl(j) {
+var c=sa[ordArrayForDictVal[j][0]];
+var elt,tr;
+elt=document.getElementById("cn1");
+elt.innerHTML=j+1;
+
+elt=document.getElementById("ca1");
+if(c.a) {
+elt.innerHTML=aa[c.a[0]];
+for(var k=1; k<c.a.length; k++) 
+  elt.innerHTML+="|"+aa[c.a[k]];
+}
+
+elt=document.getElementById("ct1");
+elt.innerHTML="";
+if(c.t) {
+elt.innerHTML+=ta[c.t[0]];
+for(var k=1; k<c.t.length; k++) 
+  elt.innerHTML+="|"+ta[c.a[k]];
+}
+
+var elt=document.getElementById("cj1");
+elt.innerHTML="";
+if(c.j) {
+elt.innerHTML+=ja[c.j[0]];
+for(var k=1; k<c.j.length; k++) 
+  elt.innerHTML+="|"+ja[c.j[k]];
+}
+
+var elt=document.getElementById("cy1");
+elt.innerHTML="";
+if(c.y) {
+elt.innerHTML+=ya[c.y[0]];
+for(var k=1; k<c.y.length; k++) 
+  elt.innerHTML+="|"+ya[c.y[k]];
+}
+
+var elt=document.getElementById("cv1");
+elt.innerHTML="";
+if(c.v) {
+elt.innerHTML+=va[c.v[0]];
+for(var k=1; k<c.v.length; k++) 
+  elt.innerHTML+="|"+va[c.v[k]];
+}
+
+var elt=document.getElementById("cp1");
+elt.innerHTML="";
+if(c.p) {
+elt.innerHTML+=pa[c.p[0]];
+for(var k=1; k<c.p.length; k++) 
+  elt.innerHTML+="|"+pa[c.p[k]];
+}
+
+var elt=document.getElementById("cc1");
+elt.innerHTML="";
+if(c.c) {
+elt.innerHTML+=ca[c.c[0]];
+for(var k=1; k<c.c.length; k++) 
+  elt.innerHTML+="|"+ca[c.c[k]];
+}
+
+var elt=document.getElementById("ck1");
+elt.innerHTML="";
+if(c.k) {
+elt.innerHTML+=ka[c.k[0]];
+for(var k=1; k<c.k.length; k++) 
+  elt.innerHTML+="|"+ka[c.k[k]];
+}
+
+var elt=document.getElementById("cm1");
+elt.innerHTML="";
+if(c.m) {
+elt.innerHTML+=ma[c.m[0]];
+for(var k=1; k<c.m.length; k++) 
+  elt.innerHTML+="|"+ma[c.m[k]];
+}
+
+}
+
+function mapCardsAsTbl() {
+var elt,tr;
+document.getElementById("colTitles").style.display="table-row";
+document.getElementById("searchResultsTblDiv").style.display="block";
+document.getElementById("searchResultsCardDiv").style.display="none";
+elt=document.getElementById("headForTbl");
+elt.innerHTML="Всего записей - " + ordArray.length; 
+
+if(jCardStart>jCardMarked) jCardStart=jCardMarked;
+else if(jCardStart+9<jCardMarked) jCardStart=jCardMarked-1;
+for(var j=0;j<10 && j+jCardStart<ordArray.length;j++) {
+var tr=document.getElementById("tr"+j);
+if(jCardStart+j==jCardMarked) {
+  tr.style.backgroundColor=cardMarkedBackgroundColor;
+  tr.style.color=cardMarkedColor;
+ }
+else {
+  tr.style.backgroundColor=cardBackgroundColor;
+  tr.style.color=cardColor;
+}
+var c=sa[ordArray[jCardStart+j][0]];
+
+elt=document.getElementById("tdn"+j);
+elt.innerHTML=jCardStart+j+1;
+
+for(var jj=0;jj<fa.length;jj++) {
+  elt=document.getElementById("td"+fa[jj]+j);
+  elt.innerHTML="";
+  if(c[fa[jj]]) {
+    elt.innerHTML=dictArray[jj][c[fa[jj]][0]];
+	for(var k=1; k<c[fa[jj]].length; k++) 
+	  elt.innerHTML+="|"+dictArray[jj][c[fa[jj]][k]];
+  }
+  
+}
+
+}
+while(j<10) {
+var tr=document.getElementById("tr"+j);
+tr.style.backgroundColor=cardBackgroundColor;
+tr.style.color=cardColor;
+var elt=document.getElementById("tdn"+j);
+elt.innerHTML="";
+for(jj=0;jj<fa.length;jj++) {
+elt=document.getElementById("td"+fa[jj]+j);
+elt.innerHTML="";
+}
+j++;
+}
+var ankers=document.getElementsByTagName("a");
+for(var jj=0;jj<ankers.length;jj++) ankers[jj].target="_blank";
+}
+
+function mapCardsAsCard() {
+var elt,tr,divMarked;
+document.getElementById("colTitles").style.display="none";
+document.getElementById("searchResultsTblDiv").style.display="none";
+document.getElementById("searchResultsCardDiv").style.display="block";
+elt=document.getElementById("headForTbl");
+elt.innerHTML="Всего записей - " + ordArray.length; 
+
+if(jCardStart>jCardMarked) jCardStart=jCardMarked;
+else if(jCardStart+4<jCardMarked) jCardStart=jCardMarked-1;
+for(var j=0;j<4 && j+jCardStart<ordArray.length;j++) {
+var tr=document.getElementById("div"+j);
+if(tr==undefined) alert("div"+j + " is undefined");
+if(jCardStart+j==jCardMarked) {
+  tr.style.backgroundColor=cardMarkedBackgroundColor;
+  tr.style.color=cardMarkedColor;
+  divMarked=tr;
+ }
+else {
+  tr.style.backgroundColor=cardBackgroundColor;
+  tr.style.color=cardColor;
+}
+var c=sa[ordArray[jCardStart+j][0]];
+
+tr.innerHTML="<b>Карточка № " + (jCardStart+j+1) + 
+" (инвентарный номер " + (ordArray[jCardStart+j][0]+1) +
+")</b><br>";
+
+for(var jj=0;jj<fa.length;jj++) {
+  if(c[fa[jj]]) {
+    //tr.innerHTML+="<b>"+colTitles[jj] + 
+	//  ": </b><span style='color:blue;'>"+dictArray[jj][c[fa[jj]][0]]+"</span>";
+	for(var k=0; k<c[fa[jj]].length; k++) 
+	  tr.innerHTML+="<b>"+colTitles[jj] + 
+	  ": </b><span style='color:blue;'>"+dictArray[jj][c[fa[jj]][k]]+"</span><br>";
+	//tr.innerHTML+="<br>";
+  }
+}
+}
+while(j<4) {
+var tr=document.getElementById("div"+j);
+tr.style.backgroundColor=cardBackgroundColor;
+tr.style.color=cardColor;
+tr.innerHTML="";
+j++;
+}
+
+var ankers=document.getElementsByTagName("a");
+for(var jj=0;jj<ankers.length;jj++) ankers[jj].target="_blank";
+if(divMarked) divMarked.scrollIntoView();
+}
+
+function mapCards() {
+if(viewStyle.value=="tbl") mapCardsAsTbl();
+else if(viewStyle.value=="cards") mapCardsAsCard();
+}
+
+function search() {
+res=[[],[],[],[],[],[],[],[],[]];
+for(j=0;j<searchConditions.length;j++) 
+  for(k=0; k<searchConditions[j].length; k++)
+    for(n=0;n<indArray[j][searchConditions[j][k]].length;n++)
+      res[j].push(indArray[j][searchConditions[j][k]][n]);
+
+var jMin=0;
+while((res[jMin].length==0)&&(jMin<res.length)) jMin++;
+
+for(j=jMin+1;j<res.length;j++) {
+  if(res[j].length>0)
+  res[jMin]=res[jMin].filter(
+    function(x) {return res[j].indexOf(x)!=-1;});
+}
+
+ordBtn.onclick();
+ordArray=ordArray.filter(function(r) {return res[jMin].indexOf(r[0])!=-1;});
+
+jCardStart=0;jCardMarked=0;
+mapCards();
+dictPosArray[fMarked]=jValMarked;
+choicePg({target:pg2});
+}
+
+function prepareOrdArray() {
+ordArray=[];
+for(var j=0; j<sa.length; j++) ordArray.push([j]);
+}
+
+function clearSearchConditions() {
+searchConditions=[[],[],[],[],[],[],[],[],[]];
+mapDict();
+mapSearchConditions();
+}
+
+function mapSearchConditions() {
+var elt;
+for(var j=0; j<9; j++) {
+switch(j) {
+      case 0: elt=document.getElementById("ca1"); break;
+	  case 1: elt=document.getElementById("ct1"); break;
+	  case 2: elt=document.getElementById("cj1"); break;
+	  case 3: elt=document.getElementById("cy1"); break;
+	  case 4: elt=document.getElementById("cv1"); break;
+	  case 5: elt=document.getElementById("cp1"); break;
+	  case 6: elt=document.getElementById("cc1"); break;
+	  case 7: elt=document.getElementById("ck1"); break;
+	  case 8: elt=document.getElementById("cm1"); break;
+	  }
+	  elt.innerHTML="";
+      for(var k=0; k<searchConditions[j].length;k++) {
+        elt.innerHTML+=dictArray[j][searchConditions[j][k]];		
+	    if(k<searchConditions[j].length-1) elt.innerHTML+=' ИЛИ ';   
+	  }
+   
+}
+elt=document.getElementById("cn1");
+elt.innerHTML="";
+}
+
+function valTabClick(flag) {
+document.getElementById("searchCondition").style.display="none";
+ document.getElementById("cardsWithVal").style.display="table-row";
+ 
+ document.getElementById("valTab").style.backgroundColor="#9999ff";
+ document.getElementById("valTab").style.color="white";
+
+ document.getElementById("searchTab").style.backgroundColor="#ffffaa";
+ document.getElementById("searchTab").style.color="#000";
+ if(flag) dictValTbl.onclick({target:dva[jValMarked-jValStart]});	 
+}
+
+function searchTabClick(flag) {
+document.getElementById("searchCondition").style.display="table-row";
+ document.getElementById("cardsWithVal").style.display="none";
+
+ var valTab=document.getElementById("valTab");
+ valTab.style.backgroundColor="#ffffaa";
+ valTab.style.color="#000";
+ valTab.style.borderBottomWidth="1px";
+
+ var searchTab=document.getElementById("searchTab");
+ searchTab.style.backgroundColor="#5555ff";
+ searchTab.style.color="white";
+ searchTab.style.borderBottomWidth="0px";
+ 
+ //var m=dma[jValMarked-jValStart].innerHTML;
+ if(flag) dictValTbl.onclick({target:dma[jValMarked-jValStart]});
+ //dma[jValMarked-jValStart].innerHTML=m;
+}
+
+function expand(id) {
+var e=document.getElementById(id);
+if(e.style.overflow=="auto")
+   {e.style.overflow="hidden"; e.style.height="25%";}
+ else
+   {e.style.overflow="auto"; e.style.height="90%";}
+
+ jCardMarked=jCardStart+parseInt(id.charAt(3));
+
+ mapCards(); 
+}
+
+window.onload=function() {
+testDiv=document.createElement("div");
+testDiv.style.position="fixed";
+testDiv.style.whiteSpace="nowrap";
+testDiv.style.top=2000+"px";
+document.body.appendChild(testDiv);
+
+var t0=document.getElementById("t0");
+
+d0=document.getElementById("d0");
+d1=document.getElementById("d1");
+d2=document.getElementById("d2");
+
+pg0=document.getElementById("pg0");
+pg1=document.getElementById("pg1");
+pg2=document.getElementById("pg2");
+
+nav=document.getElementById("nav");
+cards=document.getElementById("cards");
+fieldsTbl=document.getElementById("fieldsTbl");
+dictValTbl=document.getElementById("dictValTbl");
+viewStyle=document.getElementById("viewStyle");
+
+d0.style.top=t0.getBoundingClientRect().bottom+1+"px";
+d1.style.top=d0.style.top;
+d2.style.top=d0.style.top;
+
+searchResultsTbl=document.getElementById("searchResultsTbl");
+searchResultsCardDiv=document.getElementById("searchResultsCardDiv");
+
+d0.style.bottom="1px";
+d1.style.bottom="1px";
+
+dictArray=[aa,ta,ja,ya,va,pa,ca,ka,ma];
+indArray=[ai,ti,ji,yi,vi,pi,ci,ki,mi];
+
+for(j=0; j<9; j++) {
+  var e=document.getElementById("f"+j);
+  e.style.backgroundColor=fieldsBackgroundColor;
+  e.style.color=fieldsColor;
+  e.style.fontWeight="bold";
+  e.style.padding="5px";
+  e.style.borderWidth="0px";
+  e.style.whiteSpace="nowrap";
+  //e.style.borderWidth="1px";
+  e.innerHTML+=" (" + dictArray[j].length + ")";;
+}
+
+var w=e.getBoundingClientRect().width;
+document.getElementById("ft").innerHTML="Поля описания (в скобках - количество значений в поле)";
+//document.getElementById("ft").style.width=w+"px";
+
+nav=document.getElementById("nav");
+nav.style.height=fieldsTbl.getBoundingClientRect().height + 2 + "px";
+
+cards.style.top=parseInt(nav.style.top)+nav.getBoundingClientRect().height+5+"px";
+cards.style.left="20px";
+
+fMarked=0;
+var e=document.getElementById("f0");
+e.style.backgroundColor=fieldsMarkedBackgroundColor;
+e.style.color=fieldsMarkedColor;
+
+dictValTbl.style.left=fieldsTbl.getBoundingClientRect().right+"px";
+dictValTbl.style.height=fieldsTbl.getBoundingClientRect().height+"px";
+dictValTbl.style.width=nav.getBoundingClientRect().right-fieldsTbl.getBoundingClientRect().right -60 + "px";
+document.getElementById("dictValTitle").style.height=
+  document.getElementById("ft").getBoundingClientRect().height+"px";
+document.getElementById("dictValTitle").style.width=dictValTbl.style.width;
+
+testDiv.innerHTML="Метка";
+dmw=testDiv.getBoundingClientRect().width+2;
+testDiv.innerHTML="карточек";
+dnw=testDiv.getBoundingClientRect().width+2;
+dvw=dictValTbl.getBoundingClientRect().width-dmw-dnw
+
+for(var j=0; j<9; j++) {
+var dm=document.getElementById("dm"+j);  
+var dv=document.getElementById("dv"+j); 
+var dn=document.getElementById("dn"+j); 
+dm.style.height=e.style.height;
+dm.style.backgroundColor="white"; //"#99ff99";
+dm.style.color="green";
+dv.style.width=dvw+"px";
+dv.style.whiteSpace="nowrap";
+dv.style.overflow="hidden";
+dm.style.width=dmw+"px";
+dn.style.width=dnw+"px";
+dn.style.backgroundColor="white"; //lightblue";
+dn.style.color="black"; //"#aa00ff";
+dma.push(dm);
+dva.push(dv);
+dna.push(dn);
+}
+
+
+curDict=aa;
+jValMarked=dictPosArray[0];
+jValStart=0;
+mapDict();
+
+var img=document.createElement("img");
+img.src="ch-logo21.png";
+img.style.height=document.getElementById("title").getBoundingClientRect().height +10 + "px";
+document.getElementById("logo").appendChild(img);
+
+document.getElementById("about").innerHTML=
+"<table border=1><tr><th colspan=2>Картотека содержит</th></tr>" + 
+"<tr><td>библиографических описаний</td><td>" +sa.length + "</td></tr>"+
+"<tr><td>авторов</td><td>"+aa.length+"</td></tr>"+
+"<tr><td>названий периодических изданий</td><td>"+ja.length+"</td></tr>"+
+"<tr><td>Публикации охватывают период с</td><td>"+ 
+ya[0] + " по " + ya[ya.length-1] + "гг.</td></tr>"+
+"<tr><td>список ключевых слов содержит</td><td>" + ka.length + 
+" элементов</td></tr>"+
+"<tr><td>список персоналий</td><td>" + ma.length + " имён</td></tr></table>";
+
+fieldsTbl.onmouseover=function() {fieldsFocused=1;}
+fieldsTbl.onmouseout=function() {fieldsFocused=0;}
+dictValTbl.onmouseover=function() {valFocused=1;}
+dictValTbl.onmouseout=function() {valFocused=0;}
+searchResultsTbl.onmouseover=function() {cardsFocused=1;}
+searchResultsTbl.onmouseout=function() {cardsFocused=0;}
+searchResultsCardDiv.onmouseover=function() {cardDivFocused=1;}
+searchResultsCardDiv.onmouseout=function() {cardDivFocused=0;}
+
+
+//cards.onmouseover=function() {cardsFocused=1;}
+//cards.onmouseout=function() {cardsFocused=0;}
+onwheel=handleWheel;
+onmousewheel=handleWheel;
+addEventListener("DOMMouseScroll", handleWheel, false);
+onkeydown=handleArrowKeys;
+
+fieldsTbl.onclick=function(event) {
+for(var j=0; j<9; j++) {
+if(event.target==document.getElementById("f"+j)) {
+dictPosArray[fMarked]=jValMarked;
+
+document.getElementById("f"+fMarked).style.backgroundColor=fieldsBackgroundColor;
+document.getElementById("f"+fMarked).style.color=fieldsColor;
+fMarked=j;
+document.getElementById("f"+fMarked).style.backgroundColor=fieldsMarkedBackgroundColor;
+document.getElementById("f"+fMarked).style.color=fieldsMarkedColor;
+curDict=dictArray[fMarked];
+jValMarked=dictPosArray[fMarked];
+mapDict();
+}
+}
+}
+
+dictValTbl.onclick=function(event) {
+var e=event||window.event;
+for(var j=0; j<9; j++) 
+  if(e.target==dva[j]) { 
+     dva[jValMarked-jValStart].style.backgroundColor=valBackgroundColor;
+	 dva[jValMarked-jValStart].style.color=valColor;
+     jValMarked=jValStart+j;
+ 	 dva[j].style.backgroundColor=valMarkedBackgroundColor;
+	 dva[j].style.color=valMarkedColor;
+     searchArrayForDictVal=indArray[fMarked][jValMarked];
+	 //
+	 ordArrayForDictVal=[];
+	 for(var r=0; r<searchArrayForDictVal.length; r++) {
+	  ordArrayForDictVal[r]=[searchArrayForDictVal[r]];
+	  if(!(sa[searchArrayForDictVal[r]][ordKey1.value]==undefined)) 
+	    ordArrayForDictVal[r].push(sa[searchArrayForDictVal[r]][ordKey1.value][0]);
+	  else ordArrayForDictVal[r][1]=undefined;
+	  if(!(sa[searchArrayForDictVal[r]][ordKey2.value]==undefined)) 
+	    ordArrayForDictVal[r].push(sa[searchArrayForDictVal[r]][ordKey2.value][0]);
+	  else ordArrayForDictVal[r][2]=undefined;
+	  if(!(sa[searchArrayForDictVal[r]][ordKey3.value]==undefined)) 
+	    ordArrayForDictVal[r].push(sa[searchArrayForDictVal[r]][ordKey3.value][0]);
+	  else ordArrayForDictVal[r][3]=undefined;
+	}
+	ordArrayForDictVal.sort(function(a,b) {
+	if(compare(a[1],b[1])==0) {
+	  if(compare(a[2],b[2])==0)
+		return compare(a[3],b[3]);
+	  else return compare(a[2],b[2]);
+	  }
+	 else return compare(a[1],b[1]);
+	 }
+	);
+	 //
+	 valTabClick(0);
+	 jCardCur=0;
+	 //switch(viewStyle.value 
+	 {
+	   //case "tbl":
+	   mapCardAsTbl(jCardCur);break;
+	 }
+	 break;
+	} 
+   else if(e.target==dma[j]) { 
+   if(dma[j].innerHTML=="") {
+     dma[j].innerHTML="&#10004;";
+	 searchConditions[fMarked].push(j+jValStart);
+	 }
+	else {
+     dma[j].innerHTML="";
+	 searchConditions[fMarked]=searchConditions[fMarked].filter(function(k) {return k!=(j+jValStart)});
+	 }
+   
+     searchTabClick(0);
+   
+   mapSearchConditions();
+   
+   break;
+   }
+}   
+   
+searchArray=indArray[fMarked][jValMarked];
+jCardStart=0; jCardMarked=0;
+
+var ordBtn=document.getElementById("ordBtn");
+
+ordBtn.onclick=function() {
+ordArray=[];
+for(var r=0; r<sa.length; r++) {
+  ordArray[r]=[r];
+  if(!(sa[r][ordKey1.value]==undefined)) ordArray[r].push(sa[r][ordKey1.value][0]);
+  else ordArray[r][1]=undefined;
+  if(!(sa[r][ordKey2.value]==undefined)) ordArray[r].push(sa[r][ordKey2.value][0]);
+  else ordArray[r][2]=undefined;
+  if(!(sa[r][ordKey3.value]==undefined)) ordArray[r].push(sa[r][ordKey3.value][0]);
+  else ordArray[r][3]=undefined;
+}
+ordArray.sort(function(a,b) {
+if(compare(a[1],b[1])==0) {
+  if(compare(a[2],b[2])==0)
+    return compare(a[3],b[3]);
+  else return compare(a[2],b[2]);
+  }
+ else return compare(a[1],b[1]);
+ }
+);
+jCardStart=0; jCardMarked=0;
+mapCards();
+}
+
+var searchResultsTblHeadDiv=document.getElementById("searchResultsTblHeadDiv");
+var searchResultsTblDiv=document.getElementById("searchResultsTblDiv");
+searchResultsTblDiv.style.top=searchResultsTblHeadDiv.getBoundingClientRect().bottom+1+"px";
+searchResultsCardDiv.style.top=searchResultsTblDiv.style.top;
+for(var j=0;j<10;j++) {
+  var td, tr;
+  tr=document.createElement("tr"); tr.id="tr"+j;
+  //tr.style.position="absolute";
+  tr.style.width="100%";
+  td=document.createElement("td"); td.style.width="5%"; td.id="tdn" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="15%";  td.id="tda" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="25%"; td.id="tdt" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="15%";  td.id="tdj" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="5%";  td.id="tdy" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="5%";  td.id="tdv" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="5%";  td.id="tdp" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="5%";  td.id="tdc" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="10%";  td.id="tdk" + j; tr.appendChild(td);
+  td=document.createElement("td"); td.style.width="10%"; td.id="tdm" + j; tr.appendChild(td);
+  searchResultsTbl.appendChild(tr);
+}
+/*
+for(var j=0;j<4;j++) {
+  var tr;
+  tr=document.createElement("div"); tr.id="div"+j;
+  //tr.style.position="absolute";
+  tr.style.overflow="hidden";
+  tr.style.border="solid 1px blue";
+  tr.style.width="100%";
+  tr.style.height="25%";
+  tr.style.padding="5px";
+  searchResultsCardDiv.appendChild(tr);
+}
+*/
+/*searchResultsCardDiv.onclick=
+function(event) {
+var e=event||window.event;
+for(var j=0;j<4;j++) if(e.target.id && (e.target.id=="div"+j)) {
+ jCardMarked=jCardStart+j;
+ e=document.getElementById("div"+j);
+ if(e.style.overflow=="auto")
+   {e.style.overflow="hidden"; e.style.height="25%";}
+ else
+   {e.style.overflow="auto"; e.style.height="90%";
+   
+   }
+ break;
+ }
+ mapCards();
+}
+*/
+
+document.getElementById("findFirst").onclick=function() {
+for(var j=0; j<curDict.length; j++) 
+  if(curDict[j].indexOf(searchTarg.value)>-1) {
+    jValMarked=j; mapDict(); 
+	document.getElementById("dv"+(jValMarked-jValStart)).scrollIntoView();
+	break;
+  }
+}
+
+document.getElementById("findNext").onclick=function() {
+for(var j=jValMarked+1; j<curDict.length; j++) 
+  if(curDict[j].indexOf(searchTarg.value)>-1) {
+    jValMarked=j; jValStart=jValMarked-1; if(jValStart<0) jValStart=0; mapDict(); 
+	document.getElementById("dv"+(jValMarked-jValStart)).scrollIntoView();
+	break;
+  }
+}
+
+
+ordBtn.onclick();
+jCardStart=0; jCardMarked=0;
+mapCards();  
+
+markedPg=pg1;
+choicePg({target:pg0});
+}
+</script>
+</head>
+<body>
+<table border=0 id="t0" style="position:fixed;width:100%;line-height:24px;">
+	<tr  style="background-color:lightgreen;font-size:16px;font-weight:bold;color:#aa00ff;">
+	<th id="pg0" onclick="choicePg(event);">Общие сведения о картотеке</th>
+	<th id="pg1" onclick="choicePg(event);">Просмотр словарей и формирование запроса на поиск</th>
+	<th id="pg2" onclick="choicePg(event);">Результаты поиска</th>
+	</tr>
+</table>
+
+<div id="d0" style="position:fixed;left:1%;right:1%;bottom:1%;padding:5px;background-color:#ffffee;">
+	<table border=0 width="100%">
+	<tr>
+	<th id="logo"></th>
+	<th colspan="2" style="color:green;font-size:16px;line-height:32px;font-weight:bold;" id="title">
+	Библиография публикаций в центральных периодических изданиях<br>
+	Русской Православной Церкви (1931-2016).</th>
+	</tr> 
+	<tr>
+	</table>
+	<span id="about" style="font-size:16px;line-height:32px;"></span> 
+</div>
+
+<div id="d1" style="overflow:auto;position:fixed;left:1%;right:1%;bottom:1%;padding:5px;
+background-color:lightgray;">
+<div id="nav" style="position:absolute;top:20px;left:50px;right:50px;background-color:lightgray;">
+
+<table id="fieldsTbl" border="1" style="position:absolute;border-spacing:1px;margin-right:0px;">
+<tr><th id="ft" style="background-color:#ffeecc;"></th></tr>
+<tr><td id="f0">Автор</td></tr>
+<tr><td id="f1">Название</td></tr>
+<tr><td id="f2">Журнал</td></tr>
+<tr><td id="f3">Год</td></tr>
+<tr><td id="f4">Том</td></tr>
+<tr><td id="f5">Страницы</td></tr>
+<tr><td id="f6">Место издания</td></tr>
+<tr><td id="f7">Ключевые слова</td></tr>
+<tr><td id="f8">Персоналии</td></tr>
+</table>
+
+<table id="dictValTbl" cellspacing="1px" border="0px" 
+style="position:absolute;top:1px;left:1px;bottom:1px;right:40px;margin:0px;overflow:hidden;">
+<tr style="background-color:white;"><th colspan=3 id="dictValTitle" valign="middle">
+
+<input type="button" id="findFirst" value="Найти первое">
+<input type="button" id="findNext" value="Найти следующее">
+<input type="text" id="searchTarg" value="" style="color:blue;" onkeyup="searchDict();">
+<!--
+<table border=0 style="display:inline-block;">
+<tr><th valign="middle">
+<div class="btn" style="background-color:green;color:yellow;">|&lt;</div></th>
+<th valign="middle"><div class="btn" style="background-color:lightgreen;color:yellow;">&lt;</div>
+</th>
+<th valign="middle"><div class="btn" style="background-color:lightblue;color:yellow;">&gt;</div></th>
+<th valign="middle"><div class="btn" style="background-color:blue;color:yellow;" id="lastVal"
+onclick="document.getElementById('lastVal').style.backgroundColor='red';
+jValMarked=curDict.length-1;
+mapDict(); setTimeout(function(){return 0;},1000); 
+document.getElementById('lastVal').style.backgroundColor='blue';">
+&gt;|</div></th>
+</tr></table>
+-->
+
+<input type="button" value="|<" id="firstVal" onclick="jValMarked=0;mapDict();">
+<input type="button" value="<" id="prevVal" onclick="if(jValMarked>0) jValMarked--;mapDict();">
+<input type="button" value=">" id="nextVal" onclick="if(jValMarked<curDict.length-1) jValMarked++;mapDict();">
+<input type="button" value=">|" id="lastVal" onclick="jValMarked=curDict.length-1;mapDict();">
+
+</th></tr>
+<tr style="background-color:white;"><th>Метка</th><th>Значения в поле</th><th>Колич. карточек</th></tr>
+<tr><td id="dm0"></td><td id="dv0"></td><td id="dn0" width="50px"></td></tr>
+<tr><td id="dm1"></td><td id="dv1"></td><td id="dn1"></td></tr>
+<tr><td id="dm2"></td><td id="dv2"></td><td id="dn2"></td></tr>
+<tr><td id="dm3"></td><td id="dv3"></td><td id="dn3"></td></tr>
+<tr><td id="dm4"></td><td id="dv4"></td><td id="dn4"></td></tr>
+<tr><td id="dm5"></td><td id="dv5"></td><td id="dn5"></td></tr>
+<tr><td id="dm6"></td><td id="dv6"></td><td id="dn6"></td></tr>
+<tr><td id="dm7"></td><td id="dv7"></td><td id="dn7"></td></tr>
+<tr><td id="dm8"></td><td id="dv8"></td><td id="dn8"></td></tr>
+</table>
+
+</div>
+<div id="cards" style="position:absolute;bottom:1px;right:1px;background-color:#ffffaa;overflow:auto;">
+
+<table id="switchBetweenSearchAndVal" cellspacing="5px" border="1">
+<tr><th id="searchTab" onclick="searchTabClick(1);">Условия поиска</th>
+<th id="valTab" onclick="valTabClick(1);">Карточки, содержащие выбранное значение</th></tr>
+</table>
+<table id="cardsAsTbl" border=1>
+<tr id="cardsWithVal"><th colspan=10 width="100%">
+<input type="button" id="firstCard" value="|<" onclick="jCardCur=0;mapCardAsTbl(0);">
+<input type="button" id="prevCard" value="<"  
+ onclick="jCardCur--;if(jCardCur<0) jCardCur=0; mapCardAsTbl(jCardCur);">
+<input type="button" id="nextCard" value=">" 
+onclick="jCardCur++;if(jCardCur>=searchArrayForDictVal.length) jCardCur=searchArrayForDictVal.length-1; 
+mapCardAsTbl(jCardCur);">
+<input type="button" id="lastCard" value=">|" onclick="jCardCur=searchArrayForDictVal.length-1;
+mapCardAsTbl(jCardCur);">
+</th></tr>
+<tr id="searchCondition"><th colspan=10 width="100%">
+<input type="button" value="Найти в картотеке" onclick="search();">
+<input type="button" value="Очистить" onclick="clearSearchConditions();">
+</th></tr>
+
+<tr><th width="5%">№№</th><th width="15%">Автор</th><th width="25%">Название</th>
+<th width="15%">Журнал</th><th width="5%">Год</th><th width="5%">Том</th>
+<th width="5%">Стр.</th><th width="5%">Место изд.</th><th width="10%">Ключ. слова</th>
+<th width="10%">Персоналии</th></tr>
+<tr><td id="cn1"></td><td id="ca1"></td><td id="ct1"></td><td id="cj1"></td>
+<td id="cy1"></td><td id="cv1"></td><td id="cp1"></td><td id="cc1"></td><td id="ck1"></td>
+<td id="cm1"></td>
+</tr></table>
+</div>
+</div>
+<div id="d2" style="position:fixed;left:1px;right:1px;bottom:1px;overflow:auto;backgroundColor:#ffffaa;">
+<div id="searchResultsTblHeadDiv" style="width:100%;position:fixed;padding:0px;overflow:auto;">
+<table id="searchResultsTblHead" style="width:100%;" border="1">
+<tr style="width:100%">
+<th colspan=10>
+Описания в виде
+<select id="viewStyle" onclick="mapCards();">
+<option value="tbl">таблицы</option>
+<option value="cards" selected>карточек с полями</option>
+<option value="txt">текста</option>
+</select>
+</th></tr>
+<tr style="width:100%">
+<th colspan=10>Поля упорядочивания
+1. 
+<select id="ordKey1">
+<option value="a" selected>автор</option>
+<option value="t">название</option>
+<option value="j">журнал</option>
+<option value="y">год</option>
+<option value="v">том</option>
+<option value="p">страницы</option>
+<option value="c">место издания</option>
+<option value="k">ключевое слово</option>
+<option value="m">персоналия</option>
+</select>
+2.
+<select id="ordKey2">
+<option value="a">автор</option>
+<option value="t" selected>название</option>
+<option value="j">журнал</option>
+<option value="y">год</option>
+<option value="v">том</option>
+<option value="p">страницы</option>
+<option value="c">место издания</option>
+<option value="k">ключевое слово</option>
+<option value="m">персоналия</option>
+</select>
+3.
+<select id="ordKey3">
+<option value="a">автор</option>
+<option value="t">название</option>
+<option value="j" selected>журнал</option>
+<option value="y">год</option>
+<option value="v">том</option>
+<option value="p">страницы</option>
+<option value="c">место издания</option>
+<option value="k">ключевое слово</option>
+<option value="m">персоналия</option>
+</select>
+<input type="button" value="Упорядочить" id="ordBtn">
+</th>
+</tr>
+<tr style="width:100%"><th colspan=10><span  id="headForTbl"></span>
+<input type="button" value="|<" id="findFirstCard" onclick="jCardMarked=0; mapCards();">
+<input type="button" value="<" id="findPrevCard" 
+  onclick="jCardMarked--; if(jCardStart) jCardStart--; mapCards();">
+<input type="button" value=">" id="findNextCard" 
+  onclick="if(jCardMarked<ordArray.length-1) {jCardMarked++;jCardStart++;} mapCards();">
+<input type="button" value=">|" id="findLastCard" 
+  onclick="jCardMarked=ordArray.length-1; if(jCardMarked) jCardStart=jCardMarked-1; mapCards();">
+
+<input type="button" value="перейти на No." 
+  onclick="var nn=parseInt(document.getElementById('inpCardNo').value); 
+  if(nn<ordArray.length&&nn>=1) {jCardMarked=nn-1;jCardStart=nn-2;
+   if(jCardStart<0) jCardStart=0;mapCards();}">
+<input type="text" id="inpCardNo" value="" style="width:40px;">
+<input type="button" value="Сбросить условия поиска" onclick="ordBtn.onclick();">
+</th>
+</tr>
+<tr style="width:100%;" id="colTitles"><th width="5%">№№</th><th width="15%">Автор</th>
+<th width="25%">Название</th><th width="15%">Журнал</th><th width="5%">Год</th><th width="5%">Том</th>
+<th width="5%">Стр.</th><th width="5%">Место изд.</th><th width="10%">Ключ. слова</th>
+<th width="10%">Персоналии</th></tr>
+</table>
+</div>
+<div id="searchResultsTblDiv" style="overflow:auto;width:100%;position:fixed;padding:0px;">
+<table id="searchResultsTbl" border="1" style="width:100%;left:0%;">
+</table>
+</div>
+<div id="searchResultsCardDiv" style="overflow:auto;width:100%;position:fixed;bottom:1px;padding:5px;">
+<div style="overflow:hidden;height:25%;border:solid 1px blue;" id="div0" onclick="expand('div0');"></div>
+<div style="overflow:hidden;height:25%;border:solid 1px blue;" id="div1" onclick="expand('div1');"></div>
+<div style="overflow:hidden;height:25%;border:solid 1px blue;" id="div2" onclick="expand('div2');"></div>
+<div style="overflow:hidden;height:25%;border:solid 1px blue;" id="div3" onclick="expand('div3');"></div>
+</div>
+</div>
+</body>
+</html>
